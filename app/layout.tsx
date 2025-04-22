@@ -3,6 +3,8 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Poppins, Roboto_Mono, Rubik_Mono_One } from "next/font/google"
 import { AudioProvider } from "@/components/audio-provider"
+// Import the AudioInitializer component
+import AudioInitializer from "@/components/audio-initializer"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,7 +38,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} ${robotoMono.variable} ${rubikMonoOne.variable}`}>
-        <AudioProvider>{children}</AudioProvider>
+        <AudioProvider>
+          <AudioInitializer />
+          {children}
+        </AudioProvider>
       </body>
     </html>
   )

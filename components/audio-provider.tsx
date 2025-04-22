@@ -20,59 +20,76 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isInitialized) return
 
-    const initializeAudio = () => {
-      if (isInitialized) return
-
-      // Create background music
-      backgroundMusicRef.current = new Audio("/sounds/background-music.mp3")
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current.loop = true
-        backgroundMusicRef.current.volume = 0.2
-        backgroundMusicRef.current.play().catch((err) => console.log("Audio autoplay was prevented:", err))
-      }
-
-      // Create sound effects
-      soundsRef.current = {
-        hover: new Audio("/sounds/hover.mp3"),
-        click: new Audio("/sounds/click.mp3"),
-        activate: new Audio("/sounds/activate.mp3"),
-        navigate: new Audio("/sounds/navigate.mp3"),
-      }
-
-      // Set volumes
-      Object.values(soundsRef.current).forEach((sound) => {
-        sound.volume = 0.15
-      })
-
-      setIsInitialized(true)
+    // Create background music element right away
+    backgroundMusicRef.current = new Audio("/sounds/background-music.mp3")
+    if (backgroundMusicRef.current) {
+      backgroundMusicRef.current.loop = true
+      backgroundMusicRef.current.volume = 0.2
+      // Don't try to play yet - will be handled on user interaction
     }
 
-    // Try to initialize immediately (may not work due to autoplay policies)
-    initializeAudio()
+    // Create sound effects
+    soundsRef.current = {
+      hover: new Audio("/sounds/hover.mp3"),
+      click: new Audio("/sounds/click.mp3"),
+      activate: new Audio("/sounds/activate.mp3"),
+      navigate: new Audio("/sounds/navigate.mp3"),
+    }
 
-    // Also initialize on first user interaction
+    // Set volumes
+    Object.values(soundsRef.current).forEach((sound) => {
+      sound.volume = 0.15
+    })
+
     const handleUserInteraction = () => {
-      initializeAudio()
-
-      // Remove event listeners after initialization
-      document.removeEventListener("click", handleUserInteraction)
-      document.removeEventListener("touchstart", handleUserInteraction)
-      document.removeEventListener("keydown", handleUserInteraction)
+      if (!isInitialized && backgroundMusicRef.current) {
+        // Try to play music on any user interaction
+        backgroundMusicRef.current
+          .play()
+          .then(() => {
+            setIsInitialized(true)
+            console.log("Audio initialized and playing")
+          })
+          .catch((err) => {
+            console.log("Audio autoplay was prevented:", err)
+            // Still mark as initialized so we don't keep trying
+            setIsInitialized(true)
+          })
+      }
     }
 
-    document.addEventListener("click", handleUserInteraction)
-    document.addEventListener("touchstart", handleUserInteraction)
-    document.addEventListener("keydown", handleUserInteraction)
+    // Listen for ANY user interaction
+    document.addEventListener("click", handleUserInteraction, { once: false })
+    document.addEventListener("touchstart", handleUserInteraction, { once: false })
+    document.addEventListener("keydown", handleUserInteraction, { once: false })
+    document.addEventListener("mousemove", handleUserInteraction, { once: false })
+    document.addEventListener("scroll", handleUserInteraction, { once: false })
 
     return () => {
       document.removeEventListener("click", handleUserInteraction)
       document.removeEventListener("touchstart", handleUserInteraction)
       document.removeEventListener("keydown", handleUserInteraction)
+      document.removeEventListener("mousemove", handleUserInteraction)
+      document.removeEventListener("scroll", handleUserInteraction)
     }
   }, [isInitialized])
 
   // Toggle mute function
   const toggleMute = () => {
+    if (!isInitialized && backgroundMusicRef.current) {
+      // If not initialized yet, try to play on mute toggle
+      backgroundMusicRef.current
+        .play()
+        .then(() => {
+          setIsInitialized(true)
+          console.log("Audio initialized and playing")
+        })
+        .catch((err) => {
+          console.log("Audio autoplay was prevented:", err)
+          setIsInitialized(true)
+        })
+    }
+
     setIsMuted((prev) => !prev)
 
     if (backgroundMusicRef.current) {
