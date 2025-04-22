@@ -65,7 +65,11 @@ export default function Navigation() {
         checked={isOpen}
         onChange={toggleMenu}
       />
-      <label htmlFor="main-navigation-toggle">
+      <label
+        htmlFor="main-navigation-toggle"
+        onClick={() => playSound("click")} // Add click sound to the label
+        onMouseEnter={() => playSound("hover")} // Add hover sound to the label
+      >
         <span></span>
       </label>
 

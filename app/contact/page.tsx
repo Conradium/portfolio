@@ -70,6 +70,7 @@ export default function Contact() {
     const lineWidth = 1
     const particleSize = 2
     const baseSpeed = 0.3 // Base speed for constant movement
+    const fadeSpeed = 0.2 // Faster fade for trails (higher = faster fade)
 
     // Create particles
     for (let i = 0; i < particleCount; i++) {
@@ -106,8 +107,8 @@ export default function Contact() {
     function animate() {
       if (!ctx || !canvas) return
 
-      // Clear canvas
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
+      // Clear canvas with a more opaque background to make trails fade faster
+      ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})` // Increased opacity for faster fade
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       // Get mouse position
@@ -195,7 +196,7 @@ export default function Contact() {
         ctx.fillStyle = p.color
         ctx.fill()
 
-        // Connect nearby particles
+        // Connect nearby particles with lines that have shorter lifespans
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j]
           const dx = p.x - p2.x
@@ -206,7 +207,8 @@ export default function Contact() {
             ctx.beginPath()
             ctx.moveTo(p.x, p.y)
             ctx.lineTo(p2.x, p2.y)
-            ctx.strokeStyle = `rgba(255, 255, 255, ${((50 - dist) / 50) * 0.2})`
+            // Make lines more transparent for faster visual decay
+            ctx.strokeStyle = `rgba(255, 255, 255, ${((50 - dist) / 50) * 0.1})` // Reduced opacity
             ctx.lineWidth = lineWidth
             ctx.stroke()
           }

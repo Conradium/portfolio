@@ -10,22 +10,31 @@ type AudioContextType = {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
+// Create a global variable to track if audio has been initialized
+// This ensures the state persists across page navigations
+let globalAudioInitialized = false
+let globalBackgroundMusic: HTMLAudioElement | null = null
+let globalIsMuted = false
+
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [isMuted, setIsMuted] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
-  const backgroundMusicRef = useRef<HTMLAudioElement | null>(null)
+  const [isMuted, setIsMuted] = useState(globalIsMuted)
+  const [isInitialized, setIsInitialized] = useState(globalAudioInitialized)
+  const backgroundMusicRef = useRef<HTMLAudioElement | null>(globalBackgroundMusic)
   const soundsRef = useRef<Record<string, HTMLAudioElement>>({})
 
   // Initialize audio on first user interaction
   useEffect(() => {
-    if (isInitialized) return
+    if (isInitialized && backgroundMusicRef.current) return
 
-    // Create background music element right away
-    backgroundMusicRef.current = new Audio("/sounds/background-music.mp3")
-    if (backgroundMusicRef.current) {
-      backgroundMusicRef.current.loop = true
-      backgroundMusicRef.current.volume = 0.2
-      // Don't try to play yet - will be handled on user interaction
+    // Create background music element if it doesn't exist
+    if (!backgroundMusicRef.current) {
+      backgroundMusicRef.current = new Audio("/sounds/background-music.mp3")
+      globalBackgroundMusic = backgroundMusicRef.current
+
+      if (backgroundMusicRef.current) {
+        backgroundMusicRef.current.loop = true
+        backgroundMusicRef.current.volume = 0.1 // Lower volume to 0.1 (was 0.2)
+      }
     }
 
     // Create sound effects
@@ -41,19 +50,27 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       sound.volume = 0.15
     })
 
+    // If already initialized globally, just update local state
+    if (globalAudioInitialized) {
+      setIsInitialized(true)
+      return
+    }
+
     const handleUserInteraction = () => {
-      if (!isInitialized && backgroundMusicRef.current) {
+      if (!globalAudioInitialized && backgroundMusicRef.current) {
         // Try to play music on any user interaction
         backgroundMusicRef.current
           .play()
           .then(() => {
             setIsInitialized(true)
+            globalAudioInitialized = true
             console.log("Audio initialized and playing")
           })
           .catch((err) => {
             console.log("Audio autoplay was prevented:", err)
             // Still mark as initialized so we don't keep trying
             setIsInitialized(true)
+            globalAudioInitialized = true
           })
       }
     }
@@ -82,15 +99,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         .play()
         .then(() => {
           setIsInitialized(true)
+          globalAudioInitialized = true
           console.log("Audio initialized and playing")
         })
         .catch((err) => {
           console.log("Audio autoplay was prevented:", err)
           setIsInitialized(true)
+          globalAudioInitialized = true
         })
     }
 
-    setIsMuted((prev) => !prev)
+    const newMutedState = !isMuted
+    setIsMuted(newMutedState)
+    globalIsMuted = newMutedState
 
     if (backgroundMusicRef.current) {
       if (!isMuted) {
@@ -104,7 +125,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   // Update background music volume when mute state changes
   useEffect(() => {
     if (backgroundMusicRef.current) {
-      backgroundMusicRef.current.volume = isMuted ? 0 : 0.2
+      backgroundMusicRef.current.volume = isMuted ? 0 : 0.1 // Lower volume to 0.1 (was 0.2)
     }
   }, [isMuted])
 
