@@ -4,6 +4,8 @@ import { motion } from "framer-motion"
 import { Code, Palette, BarChart, Lightbulb, Smartphone } from "lucide-react"
 import Navigation from "@/components/navigation"
 import AnimatedBackground from "@/components/animated-background"
+import AudioToggle from "@/components/audio-toggle"
+import { useAudio } from "@/components/audio-provider"
 
 const services = [
   {
@@ -42,9 +44,12 @@ const services = [
 ]
 
 export default function Services() {
+  const { playSound } = useAudio()
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navigation />
+      <AudioToggle />
 
       <AnimatedBackground variant="dark" intensity="low">
         <div className="container mx-auto px-4 py-16 md:py-24">
@@ -54,8 +59,7 @@ export default function Services() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-[#dba6ff]">Services</h1>{" "}
-            {/* Changed from #fcc188 to #dba6ff */}
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-[#dba6ff]">Services</h1>
             <p className="text-xl max-w-3xl mx-auto text-gray-300">
               Comprehensive digital solutions tailored to your specific needs. From concept to execution, I deliver
               high-quality results that drive success.
@@ -71,6 +75,7 @@ export default function Services() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                onMouseEnter={() => playSound("hover")}
               >
                 <div className="text-[#dba6ff] mb-6">{service.icon}</div>
                 <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
@@ -78,8 +83,7 @@ export default function Services() {
                 <ul className="space-y-2">
                   {service.features.map((feature, i) => (
                     <li key={i} className="flex items-center">
-                      <span className="w-2 h-2 bg-[#dba6ff] rounded-full mr-3"></span>{" "}
-                      {/* Changed from #fcc188 to #dba6ff */}
+                      <span className="w-2 h-2 bg-[#dba6ff] rounded-full mr-3"></span>
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -102,6 +106,8 @@ export default function Services() {
             <a
               href="/contact"
               className="inline-block px-8 py-4 bg-[#dba6ff] text-black font-bold rounded-full hover:scale-105 transition-transform"
+              onMouseEnter={() => playSound("hover")}
+              onClick={() => playSound("navigate")}
             >
               Get in Touch
             </a>

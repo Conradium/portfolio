@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAudio } from "./audio-provider"
 import MenuAnimation from "./menu-animation"
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const { playSound } = useAudio()
 
   // Close menu when route changes
   useEffect(() => {
@@ -15,6 +17,7 @@ export default function Navigation() {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
+    playSound(isOpen ? "click" : "activate")
   }
 
   const menuVariants = {
@@ -41,6 +44,15 @@ export default function Navigation() {
   const itemVariants = {
     closed: { opacity: 0, x: -20 },
     open: { opacity: 1, x: 0 },
+  }
+
+  const handleLinkClick = () => {
+    setIsOpen(false)
+    playSound("navigate")
+  }
+
+  const handleLinkHover = () => {
+    playSound("hover")
   }
 
   return (
@@ -82,44 +94,59 @@ export default function Navigation() {
 
             <ul className="menu font-display compact-menu">
               <motion.li className="menu__item font-bold" variants={itemVariants}>
-                <Link className="menu__link" href="/" onClick={() => setIsOpen(false)}>
+                <Link className="menu__link" href="/" onClick={handleLinkClick} onMouseEnter={handleLinkHover}>
                   Home
                 </Link>
               </motion.li>
               <motion.li className="menu__item font-bold" variants={itemVariants}>
-                <Link className="menu__link" href="/about" onClick={() => setIsOpen(false)}>
+                <Link className="menu__link" href="/about" onClick={handleLinkClick} onMouseEnter={handleLinkHover}>
                   About
                 </Link>
               </motion.li>
               <motion.li className="menu__item font-bold" variants={itemVariants}>
-                <Link className="menu__link" href="/portfolio" onClick={() => setIsOpen(false)}>
+                <Link className="menu__link" href="/portfolio" onClick={handleLinkClick} onMouseEnter={handleLinkHover}>
                   Portfolio
                 </Link>
                 <ul className="submenu font-mono compact-submenu">
                   <li className="menu__item font-bold">
-                    <Link className="menu__link" href="/portfolio/cognxto" onClick={() => setIsOpen(false)}>
+                    <Link
+                      className="menu__link"
+                      href="/portfolio/cognxto"
+                      onClick={handleLinkClick}
+                      onMouseEnter={handleLinkHover}
+                    >
                       Cognxto
                     </Link>
                   </li>
                   <li className="menu__item font-bold">
-                    <Link className="menu__link" href="/portfolio/musextreme" onClick={() => setIsOpen(false)}>
+                    <Link
+                      className="menu__link"
+                      href="/portfolio/musextreme"
+                      onClick={handleLinkClick}
+                      onMouseEnter={handleLinkHover}
+                    >
                       MuseXTreme
                     </Link>
                   </li>
                   <li className="menu__item font-bold">
-                    <Link className="menu__link" href="/portfolio/test" onClick={() => setIsOpen(false)}>
+                    <Link
+                      className="menu__link"
+                      href="/portfolio/test"
+                      onClick={handleLinkClick}
+                      onMouseEnter={handleLinkHover}
+                    >
                       Test
                     </Link>
                   </li>
                 </ul>
               </motion.li>
               <motion.li className="menu__item font-bold" variants={itemVariants}>
-                <Link className="menu__link" href="/services" onClick={() => setIsOpen(false)}>
+                <Link className="menu__link" href="/services" onClick={handleLinkClick} onMouseEnter={handleLinkHover}>
                   Services
                 </Link>
               </motion.li>
               <motion.li className="menu__item font-bold" variants={itemVariants}>
-                <Link className="menu__link" href="/contact" onClick={() => setIsOpen(false)}>
+                <Link className="menu__link" href="/contact" onClick={handleLinkClick} onMouseEnter={handleLinkHover}>
                   Contact
                 </Link>
               </motion.li>

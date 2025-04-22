@@ -4,11 +4,16 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import Navigation from "@/components/navigation"
 import AnimatedBackground from "@/components/animated-background"
+import AudioToggle from "@/components/audio-toggle"
+import { useAudio } from "@/components/audio-provider"
 
 export default function About() {
+  const { playSound } = useAudio()
+
   return (
     <main className="min-h-screen w-screen bg-black overflow-hidden">
       <Navigation />
+      <AudioToggle />
 
       <AnimatedBackground variant="dark" intensity="low">
         <motion.div
@@ -16,6 +21,7 @@ export default function About() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
+          style={{ width: "100vw", maxWidth: "100vw", overflowX: "hidden" }}
         >
           <motion.div
             className="c_6-text max-w-4xl mx-auto"
@@ -64,7 +70,12 @@ export default function About() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.5 }}
           >
-            <Link href="/" className="c_6-instance">
+            <Link
+              href="/"
+              className="c_6-instance"
+              onMouseEnter={() => playSound("hover")}
+              onClick={() => playSound("navigate")}
+            >
               <div className="c_6-frame1 hover:scale-105 transition-transform border border-[#dba6ff]">
                 <div className="c_6-text2">
                   <p className="c_6-text3">Back</p>

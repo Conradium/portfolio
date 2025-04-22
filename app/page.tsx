@@ -5,8 +5,12 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import Navigation from "@/components/navigation"
 import AnimatedBackground from "@/components/animated-background"
+import AudioToggle from "@/components/audio-toggle"
+import { useAudio } from "@/components/audio-provider"
 
 export default function Home() {
+  const { playSound } = useAudio()
+
   useEffect(() => {
     // Add any initialization code here
     document.body.style.overflow = "hidden"
@@ -18,6 +22,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black overflow-hidden">
       <Navigation />
+      <AudioToggle />
 
       <AnimatedBackground variant="purple" intensity="medium">
         <div className="page-container">
@@ -53,7 +58,9 @@ export default function Home() {
             >
               <Link
                 href="/about"
-                className="px-6 py-3 bg-gradient-to-r from-[#16171f] to-black rounded-full text-white border border-[#dba6ff] hover:scale-105 transition-transform" // Added border with new color
+                className="px-6 py-3 bg-gradient-to-r from-[#16171f] to-black rounded-full text-white border border-[#dba6ff] hover:scale-105 transition-transform"
+                onMouseEnter={() => playSound("hover")}
+                onClick={() => playSound("navigate")}
               >
                 Explore
               </Link>

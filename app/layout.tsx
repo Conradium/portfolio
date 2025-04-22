@@ -2,6 +2,7 @@ import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
 import { Poppins, Roboto_Mono, Rubik_Mono_One } from "next/font/google"
+import { AudioProvider } from "@/components/audio-provider"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -34,7 +35,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${robotoMono.variable} ${rubikMonoOne.variable}`}>{children}</body>
+      <body className={`${poppins.variable} ${robotoMono.variable} ${rubikMonoOne.variable}`}>
+        <AudioProvider>{children}</AudioProvider>
+      </body>
     </html>
   )
 }

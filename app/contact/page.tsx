@@ -7,6 +7,8 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motio
 import { Github, Mail, MessageCircle, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navigation from "@/components/navigation"
+import AudioToggle from "@/components/audio-toggle"
+import { useAudio } from "@/components/audio-provider"
 
 // Contact information - replace with your actual details
 const contactInfo = {
@@ -18,6 +20,7 @@ const contactInfo = {
 
 export default function Contact() {
   const router = useRouter()
+  const { playSound } = useAudio()
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mouseX = useMotionValue(0)
@@ -27,29 +30,6 @@ export default function Contact() {
   const [activeElement, setActiveElement] = useState<string | null>(null)
   const [cursorText, setCursorText] = useState("")
   const [isLoaded, setIsLoaded] = useState(false)
-  const [audioEnabled, setAudioEnabled] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  // Initialize audio
-  useEffect(() => {
-    audioRef.current = new Audio("/sounds/ambient.mp3")
-    if (audioRef.current) {
-      audioRef.current.loop = true
-      audioRef.current.volume = 0.2
-    }
-  }, [])
-
-  // Toggle audio
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (audioEnabled) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play()
-      }
-      setAudioEnabled(!audioEnabled)
-    }
-  }
 
   // Handle mouse movement
   useEffect(() => {
@@ -89,17 +69,25 @@ export default function Contact() {
     const maxDistance = 100
     const lineWidth = 1
     const particleSize = 2
+    const baseSpeed = 0.3 // Base speed for constant movement
 
     // Create particles
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: Math.random() * 2 - 1,
-        vy: Math.random() * 2 - 1,
+        vx: (Math.random() * 2 - 1) * baseSpeed,
+        vy: (Math.random() * 2 - 1) * baseSpeed,
         size: Math.random() * particleSize + 1,
         color: getRandomColor(),
         originalColor: getRandomColor(),
+        // Add random movement patterns
+        movementPattern: Math.floor(Math.random() * 3), // 0: linear, 1: circular, 2: sine wave
+        angle: Math.random() * Math.PI * 2,
+        radius: Math.random() * 50 + 20,
+        frequency: Math.random() * 0.02 + 0.005,
+        amplitude: Math.random() * 5 + 2,
+        phase: Math.random() * Math.PI * 2,
       })
     }
 
@@ -154,6 +142,23 @@ export default function Contact() {
         } else {
           // Gradually return to original color
           p.color = p.originalColor
+
+          // Apply movement patterns when not influenced by mouse
+          switch (p.movementPattern) {
+            case 0: // Linear movement - already handled by vx, vy
+              break
+            case 1: // Circular movement
+              p.angle += 0.01
+              p.vx = Math.cos(p.angle) * baseSpeed
+              p.vy = Math.sin(p.angle) * baseSpeed
+              break
+            case 2: // Sine wave movement
+              p.phase += p.frequency
+              // Add sine wave influence to velocity
+              p.vx += Math.cos(p.phase) * 0.01
+              p.vy += Math.sin(p.phase) * 0.01
+              break
+          }
         }
 
         // Update position
@@ -163,6 +168,14 @@ export default function Contact() {
         // Apply friction
         p.vx *= 0.98
         p.vy *= 0.98
+
+        // Ensure minimum velocity for constant movement
+        const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        if (currentSpeed < baseSpeed && distance >= maxDistance) {
+          const factor = baseSpeed / Math.max(0.1, currentSpeed)
+          p.vx *= factor
+          p.vy *= factor
+        }
 
         // Boundary check
         if (p.x < 0) {
@@ -269,13 +282,7 @@ export default function Contact() {
     setCursorText(text)
     cursorSize.set(80)
     cursorOpacity.set(1)
-
-    // Play sound effect
-    if (audioEnabled) {
-      const hoverSound = new Audio("/sounds/hover.mp3")
-      hoverSound.volume = 0.1
-      hoverSound.play()
-    }
+    playSound("hover")
   }
 
   const handleMouseLeave = () => {
@@ -288,18 +295,13 @@ export default function Contact() {
   // Copy to clipboard function
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-
-    // Play sound effect
-    if (audioEnabled) {
-      const clickSound = new Audio("/sounds/click.mp3")
-      clickSound.volume = 0.2
-      clickSound.play()
-    }
+    playSound("click")
   }
 
   return (
     <main className="h-screen w-screen bg-black text-white overflow-hidden relative">
       <Navigation />
+      <AudioToggle />
 
       {/* Interactive background canvas */}
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
@@ -321,45 +323,6 @@ export default function Contact() {
       >
         {cursorText}
       </motion.div>
-
-      {/* Audio toggle */}
-      <motion.button
-        className="fixed top-5 right-20 z-40 p-3 rounded-full bg-black/30 backdrop-blur-sm border border-white/20"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={toggleAudio}
-      >
-        {audioEnabled ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M11 5L6 9H2V15H6L11 19V5Z"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M11 5L6 9H2V15H6L11 19V5Z"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M23 9L17 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M17 9L23 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </motion.button>
 
       {/* Main content */}
       <AnimatePresence>
@@ -389,7 +352,6 @@ export default function Contact() {
                   onMouseEnter={() => handleMouseEnter(method.id, method.hoverText)}
                   onMouseLeave={handleMouseLeave}
                   onCopy={copyToClipboard}
-                  audioEnabled={audioEnabled}
                 />
               ))}
             </div>
@@ -460,18 +422,10 @@ interface ContactElementProps {
   onMouseEnter: () => void
   onMouseLeave: () => void
   onCopy: (text: string) => void
-  audioEnabled: boolean
 }
 
-function ContactElement({
-  method,
-  index,
-  isActive,
-  onMouseEnter,
-  onMouseLeave,
-  onCopy,
-  audioEnabled,
-}: ContactElementProps) {
+function ContactElement({ method, index, isActive, onMouseEnter, onMouseLeave, onCopy }: ContactElementProps) {
+  const { playSound } = useAudio()
   const elementRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
@@ -509,17 +463,13 @@ function ContactElement({
       }
       setParticles(newParticles)
 
-      // Play sound if enabled
-      if (audioEnabled) {
-        const activateSound = new Audio("/sounds/activate.mp3")
-        activateSound.volume = 0.15
-        activateSound.play()
-      }
+      // Play sound
+      playSound("activate")
     } else if (!isActive && isHovered) {
       setIsHovered(false)
       setParticles([])
     }
-  }, [isActive, isHovered, method.color, audioEnabled])
+  }, [isActive, isHovered, method.color, playSound])
 
   // Get shape class based on method shape
   const getShapeClass = () => {
@@ -623,6 +573,8 @@ function ContactElement({
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+              onMouseEnter={() => playSound("hover")}
+              onClick={() => playSound("click")}
             >
               {method.value}
               <ExternalLink size={12} />
@@ -631,6 +583,7 @@ function ContactElement({
             <button
               onClick={() => onCopy(method.value)}
               className="text-sm text-gray-300 hover:text-white transition-colors"
+              onMouseEnter={() => playSound("hover")}
             >
               {method.value}
             </button>
@@ -650,4 +603,10 @@ interface Particle {
   size: number
   color: string
   originalColor?: string
+  movementPattern?: number
+  angle?: number
+  radius?: number
+  frequency?: number
+  amplitude?: number
+  phase?: number
 }
