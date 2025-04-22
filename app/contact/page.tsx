@@ -12,10 +12,10 @@ import { useAudio } from "@/components/audio-provider"
 
 // Contact information - replace with your actual details
 const contactInfo = {
-  discordServer: "https://discord.gg/example",
-  discordProfile: "benedictus#0000",
-  email: "contact@benedictus.com",
-  github: "https://github.com/benedictus",
+  discordServer: "https://discord.gg/YBRg39nZ6h",
+  discordProfile: "http://discordapp.com/users/leiconrad",
+  email: "benedictus.sebastian5@gmail.com",
+  github: "https://github.com/Conradium",
 }
 
 export default function Contact() {
