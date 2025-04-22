@@ -7,12 +7,12 @@ import AnimatedBackground from "@/components/animated-background"
 
 export default function About() {
   return (
-    <main className="min-h-screen w-full bg-black overflow-hidden">
+    <main className="min-h-screen w-screen bg-black overflow-hidden">
       <Navigation />
 
       <AnimatedBackground variant="dark" intensity="low">
         <motion.div
-          className="c_6-frame p-8 md:p-16 lg:p-24 w-full"
+          className="c_6-frame p-8 md:p-16 lg:p-24 w-screen"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}

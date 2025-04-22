@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import MenuAnimation from "./menu-animation"
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -49,8 +50,6 @@ export default function Navigation() {
         id="main-navigation-toggle"
         className="btn btn--close"
         title="Toggle main navigation"
-        className="btn btn--close"
-        title="Toggle main navigation"
         checked={isOpen}
         onChange={toggleMenu}
       />
@@ -77,6 +76,9 @@ export default function Navigation() {
               }}
               transition={{ duration: 0.3 }}
             ></motion.div>
+
+            {/* Interactive background animation */}
+            <MenuAnimation />
 
             <ul className="menu font-display compact-menu">
               <motion.li className="menu__item font-bold" variants={itemVariants}>

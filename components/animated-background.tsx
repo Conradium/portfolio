@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useRef } from "react"
 
 interface AnimatedBackgroundProps {
-  variant?: "purple" | "dark"
+  variant?: "purple" | "dark" | "space"
   intensity?: "low" | "medium" | "high"
   children?: React.ReactNode
 }
@@ -26,6 +26,10 @@ export default function AnimatedBackground({
     dark: {
       primary: ["30, 30, 35", "20, 20, 25", "0, 0, 0"], // [light, mid, dark]
       orbs: ["219, 166, 255", "112, 66, 210", "30, 30, 35"], // [accent, mid, light] - changed from yellow to lavender
+    },
+    space: {
+      primary: ["10, 10, 30", "5, 5, 20", "0, 0, 10"], // [light, mid, dark]
+      orbs: ["138, 43, 226", "75, 0, 130", "25, 25, 112"], // [purple, indigo, dark blue]
     },
   }
 
@@ -121,10 +125,53 @@ export default function AnimatedBackground({
       }
     }
 
+    // Create stars for space variant
+    class Star {
+      x: number
+      y: number
+      size: number
+      opacity: number
+      opacityStep: number
+      twinkleSpeed: number
+
+      constructor() {
+        this.x = Math.random() * canvas.width
+        this.y = Math.random() * canvas.height
+        this.size = Math.random() * 2 + 0.5
+        this.opacity = Math.random() * 0.5 + 0.3
+        this.opacityStep = (Math.random() * 0.01 - 0.005) * 2
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01
+      }
+
+      update() {
+        // Twinkle effect
+        this.opacity += this.opacityStep
+        if (this.opacity > 0.9 || this.opacity < 0.3) {
+          this.opacityStep = -this.opacityStep
+        }
+      }
+
+      draw() {
+        if (!ctx) return
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
     // Create orbs
     const orbs: Orb[] = []
     for (let i = 0; i < settings.orbCount; i++) {
       orbs.push(new Orb())
+    }
+
+    // Create stars for space variant
+    const stars: Star[] = []
+    if (variant === "space") {
+      for (let i = 0; i < 200; i++) {
+        stars.push(new Star())
+      }
     }
 
     // Animation loop
@@ -134,6 +181,14 @@ export default function AnimatedBackground({
       // Clear canvas with a semi-transparent background to create trail effect
       ctx.fillStyle = `rgba(${selectedColors.primary[2]}, 0.05)`
       ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // Draw stars for space variant
+      if (variant === "space") {
+        stars.forEach((star) => {
+          star.update()
+          star.draw()
+        })
+      }
 
       // Update and draw orbs
       orbs.forEach((orb) => {
@@ -154,22 +209,24 @@ export default function AnimatedBackground({
   }, [variant, intensity])
 
   return (
-    <div className="relative w-full min-h-screen">
+    <div className="relative w-screen min-h-screen overflow-hidden">
       {/* Base gradient background - changed to fixed positioning and full height */}
       <div
-        className={`fixed inset-0 z-0 w-full ${
+        className={`fixed inset-0 z-0 w-screen ${
           variant === "purple"
             ? "bg-gradient-to-br from-[#ffd9d1] via-[#7042d2] to-black"
-            : "bg-gradient-to-br from-[#1e1e23] via-[#14141a] to-black"
+            : variant === "space"
+              ? "bg-gradient-to-b from-[#0a0a20] via-[#1a0b35] to-[#000510]"
+              : "bg-gradient-to-br from-[#1e1e23] via-[#14141a] to-black"
         }`}
       />
 
       {/* Canvas for animated orbs - changed to fixed positioning */}
-      <canvas ref={canvasRef} className="fixed inset-0 z-10 w-full h-full" style={{ mixBlendMode: "screen" }} />
+      <canvas ref={canvasRef} className="fixed inset-0 z-10 w-screen h-full" style={{ mixBlendMode: "screen" }} />
 
       {/* Overlay with subtle noise texture - changed to fixed positioning */}
       <div
-        className="fixed inset-0 z-20 w-full h-full opacity-10"
+        className="fixed inset-0 z-20 w-screen h-full opacity-10"
         style={{
           backgroundImage: "url('/noise-texture.png')",
           backgroundRepeat: "repeat",
@@ -178,7 +235,7 @@ export default function AnimatedBackground({
       />
 
       {/* Content container - ensure it has a minimum height of screen */}
-      <div className="relative z-30 w-full min-h-screen">{children}</div>
+      <div className="relative z-30 w-screen min-h-screen overflow-hidden">{children}</div>
     </div>
   )
 }
