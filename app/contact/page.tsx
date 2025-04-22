@@ -12,10 +12,10 @@ import { useAudio } from "@/components/audio-provider"
 
 // Contact information - replace with your actual details
 const contactInfo = {
-  discordServer: "https://discord.gg/yourserver",
-  discordProfile: "yourusername#0000",
+  discordServer: "https://discord.gg/example",
+  discordProfile: "benedictus#0000",
   email: "contact@benedictus.com",
-  github: "https://github.com/yourusername",
+  github: "https://github.com/benedictus",
 }
 
 export default function Contact() {
@@ -70,7 +70,7 @@ export default function Contact() {
     const lineWidth = 1
     const particleSize = 2
     const baseSpeed = 0.3 // Base speed for constant movement
-    const fadeSpeed = 0.2 // Faster fade for trails (higher = faster fade)
+    const fadeSpeed = 0.1 // Faster fade for trails (higher = faster fade)
 
     // Create particles
     for (let i = 0; i < particleCount; i++) {
@@ -246,6 +246,7 @@ export default function Contact() {
       color: "#7289DA",
       hoverText: "Join Server",
       shape: "hexagon",
+      action: "link", // Open link in new tab
     },
     {
       id: "discord-profile",
@@ -255,6 +256,7 @@ export default function Contact() {
       color: "#5865F2",
       hoverText: "Copy ID",
       shape: "circle",
+      action: "copy", // Copy to clipboard
     },
     {
       id: "email",
@@ -265,6 +267,7 @@ export default function Contact() {
       color: "#D44638",
       hoverText: "Send Email",
       shape: "triangle",
+      action: "email", // Open mailto link
     },
     {
       id: "github",
@@ -275,6 +278,7 @@ export default function Contact() {
       color: "#333",
       hoverText: "View Profile",
       shape: "square",
+      action: "link", // Open link in new tab
     },
   ]
 
@@ -418,6 +422,7 @@ interface ContactElementProps {
     color: string
     shape: string
     hoverText: string
+    action: "link" | "copy" | "email" // Added action type
   }
   index: number
   isActive: boolean
@@ -434,6 +439,7 @@ function ContactElement({ method, index, isActive, onMouseEnter, onMouseLeave, o
   const [particles, setParticles] = useState<
     { x: number; y: number; size: number; color: string; vx: number; vy: number }[]
   >([])
+  const [showCopiedMessage, setShowCopiedMessage] = useState(false)
 
   // Handle mouse movement for 3D effect
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -489,10 +495,33 @@ function ContactElement({ method, index, isActive, onMouseEnter, onMouseLeave, o
     }
   }
 
+  // Handle card click based on action type
+  const handleCardClick = () => {
+    playSound("click")
+
+    switch (method.action) {
+      case "link":
+        if (method.link) {
+          window.open(method.link, "_blank")
+        }
+        break
+      case "email":
+        if (method.link) {
+          window.location.href = method.link
+        }
+        break
+      case "copy":
+        navigator.clipboard.writeText(method.value)
+        setShowCopiedMessage(true)
+        setTimeout(() => setShowCopiedMessage(false), 2000)
+        break
+    }
+  }
+
   return (
     <motion.div
       ref={elementRef}
-      className={`relative overflow-hidden ${getShapeClass()} backdrop-blur-md`}
+      className={`relative overflow-hidden ${getShapeClass()} backdrop-blur-md cursor-pointer`}
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -508,6 +537,7 @@ function ContactElement({ method, index, isActive, onMouseEnter, onMouseLeave, o
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseMove={handleMouseMove}
+      onClick={handleCardClick}
     >
       {/* Particles */}
       {isActive &&
@@ -569,27 +599,24 @@ function ContactElement({ method, index, isActive, onMouseEnter, onMouseLeave, o
 
           <h3 className="text-xl font-bold mb-2">{method.title}</h3>
 
-          {method.link ? (
-            <a
-              href={method.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1"
-              onMouseEnter={() => playSound("hover")}
-              onClick={() => playSound("click")}
-            >
-              {method.value}
-              <ExternalLink size={12} />
-            </a>
-          ) : (
-            <button
-              onClick={() => onCopy(method.value)}
-              className="text-sm text-gray-300 hover:text-white transition-colors"
-              onMouseEnter={() => playSound("hover")}
-            >
-              {method.value}
-            </button>
-          )}
+          <div className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1">
+            {method.value}
+            {method.action === "link" && <ExternalLink size={12} />}
+          </div>
+
+          {/* Copied message */}
+          <AnimatePresence>
+            {showCopiedMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute bottom-2 left-0 right-0 text-xs text-white bg-green-500 rounded-full py-1 px-2 mx-auto w-max"
+              >
+                Copied!
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
